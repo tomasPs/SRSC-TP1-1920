@@ -19,6 +19,11 @@ private String padding;
 private String hash;
 private String mac;
 private int makks;
+private File xml;
+
+public ConfigFile(File ficheiro) {
+	xml=ficheiro;
+}
 
   public void readFile( File ficheiro) throws ParserConfigurationException, SAXException, IOException {
 	  File file = ficheiro;
