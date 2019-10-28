@@ -19,10 +19,12 @@ class SMCPMessageTests {
         SMCPMessage message =
             new SMCPMessage.Builder((byte) 0x01)
                 .identifiedBy("hello")
-                .messageType((byte) 0x02)
-                .payload(payload)
-                .withSize(payload.length)
-                .attributesHash(hash.digest()).build();
+                .ofMessageType((byte) 0x02)
+                .withPayload(payload)
+                .sizeOfPayload(payload.length)
+                .integrityCheckedBy(hash.digest())
+                .sizeOfPayloadCheck(hash.getDigestLength())
+                .payloadCheckedBy(hash.digest()).build();
 
         byte[] messageBytes = message.toByteArray();
         SMCPMessage message2 = SMCPMessage.parse(messageBytes);
