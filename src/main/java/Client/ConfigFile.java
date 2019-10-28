@@ -11,7 +11,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 
-public class ConfigFile {
+public class EndpointReader {
 
 
 	public Node readFile( File ficheiro, String ip) throws ParserConfigurationException, SAXException, IOException {
@@ -23,7 +23,5 @@ public class ConfigFile {
 
 		Node temp= tempdoc.item(0);
 		return temp;
-	
 	}
-
 }
