@@ -70,7 +70,7 @@ public class EndpointConfiguration {
 		return mac;
 	}
 	
-	public String getMakks(){
+	public int getMakks(){
 		return makks;
 	}
 
