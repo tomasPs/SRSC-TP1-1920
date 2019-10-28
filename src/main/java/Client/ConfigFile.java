@@ -14,14 +14,16 @@ import org.xml.sax.SAXException;
 public class EndpointReader {
 
 
-	public Node readFile( File ficheiro, String ip) throws ParserConfigurationException, SAXException, IOException {
+	public EndpointConfiguration readFile( File ficheiro, String ip) throws ParserConfigurationException, SAXException, IOException {
+		EndpointConfiguration config;
+		
 		File file = ficheiro;
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 		Document document = documentBuilder.parse(file);
 		NodeList tempdoc= document.getElementsByTagName(ip);
 
-		Node temp= tempdoc.item(0);
-		return temp;
+		config= new EndpointConfiguration(tempdoc.item(0));
+		return config;
 	}
 }
