@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 
+import static Utils.ParsingUtils.*;
+
 public class SMCPMessage {
     private byte vID;
     private String sID;
@@ -76,14 +78,11 @@ public class SMCPMessage {
     public byte[] toByteArray() {
         ByteBuffer buffer = ByteBuffer.allocate(getByteArrayLength());
         buffer.put(vID);
-        buffer.putInt(sID.getBytes().length);
-        buffer.put(sID.getBytes());
+        writeString(buffer, sID);
         buffer.put(type);
         buffer.put(sAttributesHash);
-        buffer.putInt(sizeOfPayload);
-        buffer.put(securePayload);
-        buffer.putInt(sizeOfPayloadCheck);
-        buffer.put(fastSecurePayloadCheck);
+        writeByteArray(buffer, securePayload);
+        writeByteArray(buffer, fastSecurePayloadCheck);
 
         return buffer.array();
     }
@@ -107,17 +106,6 @@ public class SMCPMessage {
         message.fastSecurePayloadCheck = readByteArray(buffer, message.sizeOfPayloadCheck);
 
         return message;
-    }
-
-    private static byte[] readByteArray(ByteBuffer buffer, int length) {
-        byte[] arr = new byte[length];
-        buffer.get(arr);
-        return arr;
-    }
-
-    private static String readString(ByteBuffer buffer) {
-        int length = buffer.getInt();
-        return new String(readByteArray(buffer, length));
     }
 
     public static class Builder {
