@@ -18,7 +18,7 @@ public class KeyStoreManager {
         try {
             keyStore = KeyStore.getInstance(type);
             File keyStoreFile = new File(Objects
-                .requireNonNull(getClass().getClassLoader().getResource("security/keyStore.ks")).getFile());
+                .requireNonNull(getClass().getClassLoader().getResource("security/SMCPKeystore.jecks")).getFile());
             FileInputStream stream = new FileInputStream(keyStoreFile);
             keyStore.load(stream, "g11srsc".toCharArray());
         } catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
