@@ -21,9 +21,7 @@ class SMCPMessageTests {
                 .identifiedBy("hello")
                 .ofMessageType((byte) 0x02)
                 .withPayload(payload)
-                .sizeOfPayload(payload.length)
                 .integrityCheckedBy(hash.digest())
-                .sizeOfPayloadCheck(hash.getDigestLength())
                 .payloadCheckedBy(hash.digest()).build();
 
         byte[] messageBytes = message.toByteArray();
