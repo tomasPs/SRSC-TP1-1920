@@ -4,7 +4,7 @@ public class SMCPMessage {
     private byte vID;
     private String sID;
     private byte type;
-    private String sAttributes;
+    private byte[] sAttributesHash;
     private int sizeOfPayload;
     private byte[] securePayload;
 
@@ -23,8 +23,8 @@ public class SMCPMessage {
         return type;
     }
 
-    public String getsAttributes() {
-        return sAttributes;
+    public byte[] getsAttributesHash() {
+        return sAttributesHash;
     }
 
     public int getSizeOfPayload() {
@@ -39,7 +39,7 @@ public class SMCPMessage {
         private byte vID;
         private String sID;
         private byte type;
-        private String sAttributes;
+        private byte[] sAttributesHash;
         private int sizeOfPayload;
         private byte[] securePayload;
 
@@ -57,8 +57,8 @@ public class SMCPMessage {
             return this;
         }
 
-        public Builder attributesHash(String sAttributes) {
-            this.sAttributes = sAttributes;
+        public Builder attributesHash(byte[] sAttributesHash) {
+            this.sAttributesHash = sAttributesHash;
             return this;
         }
 
@@ -77,7 +77,7 @@ public class SMCPMessage {
             message.vID = this.vID;
             message.sID = this.sID;
             message.type = this.type;
-            message.sAttributes = this.sAttributes;
+            message.sAttributesHash = this.sAttributesHash;
             message.sizeOfPayload = this.sizeOfPayload;
             message.securePayload = this.securePayload;
             return message;

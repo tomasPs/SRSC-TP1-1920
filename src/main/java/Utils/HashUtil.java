@@ -2,22 +2,14 @@ package Utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 public class HashUtil {
-
-    public static void main(String[] args) {
-
+    public MessageDigest getInstance(String algorithm) throws NoSuchProviderException, NoSuchAlgorithmException {
+        return MessageDigest.getInstance(algorithm, "BC");
     }
 
-    public byte[] hashWithSHA256(byte[] input) {
-        try {
-            MessageDigest hash = MessageDigest.getInstance("SHA256");
-
-            hash.update(input);
-
-            return hash.digest();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+    public MessageDigest getSHA256Instance() throws NoSuchAlgorithmException, NoSuchProviderException {
+        return MessageDigest.getInstance("SHA256", "BC");
     }
 }
