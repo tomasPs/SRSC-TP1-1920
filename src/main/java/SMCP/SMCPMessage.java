@@ -40,7 +40,7 @@ public class SMCPMessage {
     }
 
     public byte[] toByteArray() {
-        ByteBuffer buffer = ByteBuffer.allocate(getByteArraySize());
+        ByteBuffer buffer = ByteBuffer.allocate(getByteArrayLength());
         buffer.put(vID);
         buffer.putInt(sID.getBytes().length);
         buffer.put(sID.getBytes());
@@ -52,9 +52,9 @@ public class SMCPMessage {
         return buffer.array();
     }
 
-    private int getByteArraySize() {
-        return 2 + Integer.BYTES + this.sID
-            .getBytes().length + sAttributesHash.length + Integer.BYTES + sizeOfPayload;
+    public int getByteArrayLength() {
+        return 2 + Integer.BYTES + this.sID.getBytes().length
+            + sAttributesHash.length + Integer.BYTES + sizeOfPayload;
     }
 
     @Override
