@@ -1,0 +1,34 @@
+{
+"224.5.6.7:9000": {
+        "sid": "Chat of Secret Oriental Culinary",
+        "sea": "AES",
+        "seaks": "256",
+        "mode": "GMC",
+		"padding": "PKCS5Padding",
+		"inthash": "SHA256",
+		"mac": "HMacSHA256",
+		"makks": "256"
+    },
+	
+	"252.10.20.30:12224": {
+        "sid": "Secret Chat of the Long Night of Horrors",
+        "sea": "RC6",
+        "seaks": "256",
+        "mode": "CTR",
+		"padding": "NoPadding",
+		"inthash": "SHA512",
+		"mac": "HMacSHA512",
+		"makks": "512"
+    },
+	
+	"230.100.100.100:6666": {
+        "sid": "Secret Chat of the Long Night of Horrors",
+        "sea": "Blowfish",
+        "seaks": "448",
+        "mode": "CBC",
+		"padding": "PKC5Padding",
+		"inthash": "SHA1",
+		"mac": "DES",
+		"makks": "64"
+    }
+}

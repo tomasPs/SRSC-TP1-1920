@@ -29,7 +29,7 @@ public class EndpointReader {
 
         Element selectedNode = (Element) tempdoc.item(0);
 
-        String ipport = selectedNode.getElementsByTagName("ip").item(0).getTextContent();
+        String ipport = selectedNode.getElementsByTagName("ipmc:port").item(0).getTextContent();
 
         String sid = selectedNode.getElementsByTagName("sid").item(0).getTextContent();
 
