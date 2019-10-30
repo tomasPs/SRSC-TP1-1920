@@ -9,12 +9,43 @@ import static Utils.ParsingUtils.*;
 public class SMCPMessage {
     private byte vID;
     private String sID;
-    private byte type;
+    private MessageType type;
     private byte[] sAttributesHash;
     private byte[] securePayload;
     private byte[] fastSecurePayloadCheck;
 
     private SMCPMessage() {
+    }
+
+    protected SMCPMessage(
+        byte vID,
+        String sID,
+        MessageType type,
+        byte[] sAttributesHash,
+        byte[] securePayload,
+        byte[] fastSecurePayloadCheck
+    ) {
+        this.vID = vID;
+        this.sID = sID;
+        this.type = type;
+        this.sAttributesHash = sAttributesHash;
+        this.securePayload = securePayload;
+        this.fastSecurePayloadCheck = fastSecurePayloadCheck;
+    }
+
+    public SMCPMessage(
+        byte vID,
+        String sID,
+        byte[] sAttributesHash,
+        byte[] securePayload,
+        byte[] fastSecurePayloadCheck
+    ) {
+        this.vID = vID;
+        this.sID = sID;
+        this.type = MessageType.SMCPMessage;
+        this.sAttributesHash = sAttributesHash;
+        this.securePayload = securePayload;
+        this.fastSecurePayloadCheck = fastSecurePayloadCheck;
     }
 
     public byte getvID() {
@@ -25,7 +56,7 @@ public class SMCPMessage {
         return sID;
     }
 
-    public byte getType() {
+    public MessageType getType() {
         return type;
     }
 
@@ -45,7 +76,7 @@ public class SMCPMessage {
         ByteBuffer buffer = ByteBuffer.allocate(getByteArrayLength());
         buffer.put(vID);
         writeString(buffer, sID);
-        buffer.put(type);
+        buffer.put(type.getTypeCode());
         buffer.put(sAttributesHash);
         writeByteArray(buffer, securePayload);
         writeByteArray(buffer, fastSecurePayloadCheck);
@@ -53,7 +84,7 @@ public class SMCPMessage {
         return buffer.array();
     }
 
-    public int getByteArrayLength() {
+    private int getByteArrayLength() {
         return 2 + Integer.BYTES + this.sID.getBytes().length
             + sAttributesHash.length + Integer.BYTES + securePayload.length + Integer.BYTES + fastSecurePayloadCheck.length;
     }
@@ -64,8 +95,8 @@ public class SMCPMessage {
         if (o == null || getClass() != o.getClass()) return false;
         SMCPMessage message = (SMCPMessage) o;
         return vID == message.vID &&
-            type == message.type &&
             sID.equals(message.sID) &&
+            type == message.type &&
             Arrays.equals(sAttributesHash, message.sAttributesHash) &&
             Arrays.equals(securePayload, message.securePayload) &&
             Arrays.equals(fastSecurePayloadCheck, message.fastSecurePayloadCheck);
@@ -86,7 +117,7 @@ public class SMCPMessage {
         ByteBuffer buffer = ByteBuffer.wrap(input);
         message.vID = buffer.get();
         message.sID = readString(buffer);
-        message.type = buffer.get();
+        message.type = MessageType.fromTypeCode(buffer.get());
         message.sAttributesHash = readByteArray(buffer, 32);
         int sizeOfPayload = buffer.getInt();
         message.securePayload = readByteArray(buffer, sizeOfPayload);
@@ -96,52 +127,26 @@ public class SMCPMessage {
         return message;
     }
 
-    public static class Builder {
-        private byte vID;
-        private String sID;
-        private byte type;
-        private byte[] sAttributesHash;
-        private byte[] securePayload;
-        private byte[] fastSecurePayloadCheck;
+    public enum MessageType {
+        SMCPMessage((byte) 0), MessageWithIV((byte) 1);
 
-        public Builder(byte vID) {
-            this.vID = vID;
+        private byte typeCode;
+
+        MessageType(byte typeCode) {
+            this.typeCode = typeCode;
         }
 
-        public Builder identifiedBy(String sID) {
-            this.sID = sID;
-            return this;
+        public byte getTypeCode() {
+            return typeCode;
         }
 
-        public Builder ofMessageType(byte type) {
-            this.type = type;
-            return this;
-        }
-
-        public Builder integrityCheckedBy(byte[] sAttributesHash) {
-            this.sAttributesHash = sAttributesHash;
-            return this;
-        }
-
-        public Builder withPayload(byte[] securePayload) {
-            this.securePayload = securePayload;
-            return this;
-        }
-
-        public Builder payloadCheckedBy(byte[] fastSecurePayloadCheck) {
-            this.fastSecurePayloadCheck = fastSecurePayloadCheck;
-            return this;
-        }
-
-        public SMCPMessage build() {
-            SMCPMessage message = new SMCPMessage();
-            message.vID = this.vID;
-            message.sID = this.sID;
-            message.type = this.type;
-            message.sAttributesHash = this.sAttributesHash;
-            message.securePayload = this.securePayload;
-            message.fastSecurePayloadCheck = this.fastSecurePayloadCheck;
-            return message;
+        public static MessageType fromTypeCode(byte type) {
+            switch (type) {
+                case 1:
+                    return MessageWithIV;
+                default:
+                    return SMCPMessage;
+            }
         }
     }
 }
