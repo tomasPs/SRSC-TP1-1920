@@ -15,7 +15,7 @@ import org.xml.sax.SAXException;
 
 public class EndpointReader {
 
-    public EndpointConfiguration readFile(
+    public static EndpointConfiguration readFile(
         File ficheiro,
         String ip
     ) throws ParserConfigurationException, SAXException, IOException {
@@ -49,5 +49,24 @@ public class EndpointReader {
 
         config = new EndpointConfiguration(ipport, sid, sea, seaks, mode, padding, hash, mac, makks);
         return config;
+    }
+
+    public static EndpointConfiguration getTestConfig(
+        String ip
+    ) throws Exception {
+        if (ip.equals("224.5.6.7:9000")) {
+            return new EndpointConfiguration(
+                "224.5.6.7:9000",
+                "Chat of Secret Oriental Culinary",
+                "AES",
+                256,
+                "GCM",
+                "PKCS5Padding",
+                "SHA256",
+                "HMacSHA256",
+                256
+            );
+        } else
+            throw new Exception("Configuration not found");
     }
 }

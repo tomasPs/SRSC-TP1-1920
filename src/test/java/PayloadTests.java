@@ -11,7 +11,7 @@ public class PayloadTests {
         byte[] check = {0x00, 0x01, 0x02, 0x03};
         String msg = "bla bla bla";
 
-        Payload payload = new Payload("fromMe",5,43634,msg, check);
+        Payload payload = new Payload("fromMe",5,43634,msg.getBytes(), check);
 
         Payload payload2 = Payload.parse(payload.toByteArray());
 
