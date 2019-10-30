@@ -43,16 +43,9 @@ public class SMCPMessageWithIV extends SMCPMessage {
         String sID = readString(buffer);
         MessageType type = MessageType.fromTypeCode(buffer.get());
         byte[] sAttributesHash = readByteArray(buffer, 32);
-
-        int sizeOfPayload = buffer.getInt();
-        byte[] securePayload = readByteArray(buffer, sizeOfPayload);
-
-        int sizeOfPayloadCheck = buffer.getInt();
-        byte[] fastSecurePayloadCheck = readByteArray(buffer, sizeOfPayloadCheck);
-
-        int sizeOfIv = buffer.getInt();
-        byte[] IV = readByteArray(buffer, sizeOfIv);
-
+        byte[] securePayload = readByteArray(buffer);
+        byte[] fastSecurePayloadCheck = readByteArray(buffer);
+        byte[] IV = readByteArray(buffer);
         return new SMCPMessageWithIV(vId, sID, sAttributesHash, securePayload, fastSecurePayloadCheck, IV);
     }
 

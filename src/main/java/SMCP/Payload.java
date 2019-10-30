@@ -11,13 +11,13 @@ public class Payload {
     private String fromPeerID;
     private int seqNumber;
     private int randomNonce;
-    private String message;
+    private byte[] message;
     private byte[] integrityControl;
 
     private Payload() {
     }
 
-    public Payload(String fromPeerID, int seqNumber, int randomNonce, String message, byte[] integrityControl) {
+    public Payload(String fromPeerID, int seqNumber, int randomNonce, byte[] message, byte[] integrityControl) {
         this.fromPeerID = fromPeerID;
         this.seqNumber = seqNumber;
         this.randomNonce = randomNonce;
@@ -30,14 +30,34 @@ public class Payload {
         writeString(buffer, fromPeerID);
         buffer.putInt(seqNumber);
         buffer.putInt(randomNonce);
-        writeString(buffer, message);
+        writeByteArray(buffer, message);
         writeByteArray(buffer, integrityControl);
         return buffer.array();
     }
 
+    public String getFromPeerID() {
+        return fromPeerID;
+    }
+
+    public int getSeqNumber() {
+        return seqNumber;
+    }
+
+    public int getRandomNonce() {
+        return randomNonce;
+    }
+
+    public byte[] getMessage() {
+        return message;
+    }
+
+    public byte[] getIntegrityControl() {
+        return integrityControl;
+    }
+
     private int getByteArrayLength() {
         return Integer.BYTES + fromPeerID.getBytes().length + Integer.BYTES + Integer.BYTES + Integer.BYTES + message
-            .getBytes().length + Integer.BYTES + integrityControl.length;
+            .length + Integer.BYTES + integrityControl.length;
     }
 
     @Override
@@ -48,13 +68,14 @@ public class Payload {
         return seqNumber == payload.seqNumber &&
             randomNonce == payload.randomNonce &&
             fromPeerID.equals(payload.fromPeerID) &&
-            message.equals(payload.message) &&
+            Arrays.equals(message, payload.message) &&
             Arrays.equals(integrityControl, payload.integrityControl);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(fromPeerID, seqNumber, randomNonce, message);
+        int result = Objects.hash(fromPeerID, seqNumber, randomNonce);
+        result = 31 * result + Arrays.hashCode(message);
         result = 31 * result + Arrays.hashCode(integrityControl);
         return result;
     }
@@ -66,9 +87,8 @@ public class Payload {
         payload.fromPeerID = readString(buffer);
         payload.seqNumber = buffer.getInt();
         payload.randomNonce = buffer.getInt();
-        payload.message = readString(buffer);
-        int hashLength = buffer.getInt();
-        payload.integrityControl = readByteArray(buffer, hashLength);
+        payload.message = readByteArray(buffer);
+        payload.integrityControl = readByteArray(buffer);
 
         return payload;
     }
