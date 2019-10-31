@@ -10,13 +10,12 @@ import java.security.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static Utils.GeneratorUtils.generateIV;
+
 public class Protocol {
     private EndpointConfiguration configuration;
     private String params;
     private Map<String, Boolean> cachedIVCheck;
-
-    public static final int ENCRYPT_MODE = 1;
-    public static final int DECRYPT_MODE = 2;
 
     public Protocol(EndpointConfiguration configuration) {
         this.configuration = configuration;
@@ -63,7 +62,7 @@ public class Protocol {
     }
 
     private SMCPMessageWithIV toMessageWithIV(SMCPMessage message, byte[] IV) {
-        SMCPMessageWithIV messageWithIV = new SMCPMessageWithIV(
+        return new SMCPMessageWithIV(
             message.getvID(),
             message.getsID(),
             message.getsAttributesHash(),
@@ -71,7 +70,6 @@ public class Protocol {
             message.getFastSecurePayloadCheck(),
             IV
         );
-        return messageWithIV;
     }
 
     public boolean needsIV() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, ShortBufferException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException {
@@ -93,11 +91,12 @@ public class Protocol {
             int ctLen = cipher.update(input, 0, input.length, cipherText, 0);
             cipher.doFinal(cipherText, ctLen);
 
-            //Decript
+            //Decrypt
             cipher.init(Cipher.DECRYPT_MODE, key);
             byte[] clearText = new byte[cipher.getOutputSize(cipherText.length)];
             ctLen = cipher.update(cipherText, 0, cipherText.length, clearText, 0);
             cipher.doFinal(clearText, ctLen);
+
         } catch (InvalidKeyException e) {
             if (e.getMessage().equals("no IV set when one expected")) {
                 this.cachedIVCheck.put(configuration.getMode(), true);
@@ -107,15 +106,6 @@ public class Protocol {
         }
         this.cachedIVCheck.put(configuration.getMode(), false);
         return false;
-    }
-
-    private IvParameterSpec generateIV(int size) throws NoSuchAlgorithmException {
-        SecureRandom randomSecureRandom = SecureRandom.getInstance("SHA1PRNG");
-        byte[] iv = new byte[size];
-        randomSecureRandom.nextBytes(iv);
-
-        IvParameterSpec ivParams = new IvParameterSpec(iv);
-        return ivParams;
     }
 
     public SMCPMessage decryptPayload(SMCPMessage message) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, UnrecoverableKeyException, KeyStoreException, InvalidKeyException, ShortBufferException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
