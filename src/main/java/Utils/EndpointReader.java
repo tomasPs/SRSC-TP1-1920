@@ -1,27 +1,5 @@
+
 package Utils;
-
-import java.io.File;
-import java.io.IOException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import SMCP.EndpointConfiguration;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-public class EndpointReader {
-
-    public static EndpointConfiguration readFile(
-        File ficheiro,
-        String ip
-    ) throws ParserConfigurationException, SAXException, IOException {
-        EndpointConfiguration config;
-
-       package Utils;
 
 import java.io.File;
 import java.io.FileReader;
