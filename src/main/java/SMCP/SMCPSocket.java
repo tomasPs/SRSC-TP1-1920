@@ -2,6 +2,7 @@ package SMCP;
 
 import Utils.EndpointReader;
 import Utils.ParsingUtils;
+import Utils.*;
 import sun.rmi.runtime.Log;
 
 import javax.crypto.BadPaddingException;
@@ -12,6 +13,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.security.*;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -67,6 +69,8 @@ public class SMCPSocket extends MulticastSocket {
 
         //TODO securiy stuff
         byte[] hash = new byte[32];
+
+
         int nonce = 0;
         try {
             nonce = generateSecureInt();
@@ -156,4 +160,5 @@ public class SMCPSocket extends MulticastSocket {
             e.printStackTrace();
         }
     }
+
 }
