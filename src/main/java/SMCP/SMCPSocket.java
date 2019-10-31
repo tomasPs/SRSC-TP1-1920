@@ -5,18 +5,12 @@ import Utils.ParsingUtils;
 import Utils.*;
 import sun.rmi.runtime.Log;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.ShortBufferException;
+
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.security.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static SMCP.SMCPMessage.MessageType;
@@ -27,6 +21,7 @@ public class SMCPSocket extends MulticastSocket {
     private Logger logger = Logger.getLogger(SMCPSocket.class.getName());
     private EndpointConfiguration socketConfig;
     private Set<Integer> nounces;
+
 
     public SMCPSocket() throws IOException {
         super();
@@ -45,6 +40,7 @@ public class SMCPSocket extends MulticastSocket {
         super.joinGroup(mcastaddr);
         configure(mcastaddr);
         nounces = new HashSet<>();
+
     }
 
     @Override
@@ -69,6 +65,11 @@ public class SMCPSocket extends MulticastSocket {
 
         //TODO securiy stuff
         byte[] hash = new byte[32];
+        try {
+            hash = getHashValueSocket(p.getData());
+        } catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
 
         int nonce = 0;
@@ -77,14 +78,21 @@ public class SMCPSocket extends MulticastSocket {
         } catch (NoSuchAlgorithmException e) {
             nonce = new Random().nextInt();
         }
-        logger.info("Generated ("+nonce+") nonce");
+        logger.info("Generated (" + nonce + ") nonce");
         Payload payload = new Payload(username, 0, nonce, p.getData(), hash);
+
+        byte[] attributesHash = new byte[0];
+        try {
+            attributesHash = this.socketConfig.getHashValue();
+        } catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
         SMCPMessage msg = new SMCPMessage(
             (byte) 0,
             this.socketConfig.getSid(),
             SMCPMessage.MessageType.SMCPMessage,
-            hash,
+            attributesHash,
             payload.toByteArray(),
             hash
         );
@@ -121,6 +129,16 @@ public class SMCPSocket extends MulticastSocket {
             default:
                 msg = SMCPMessage.parse(p.getData());
                 break;
+        }
+
+        try {
+            byte[] attributesHash = this.socketConfig.getHashValue();
+            if (!MessageDigest.isEqual(attributesHash, msg.getsAttributesHash())) {
+                logger.warning("Attributes hash is not equal");
+                return;
+            }
+        } catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
 
         Protocol protocol = new Protocol(socketConfig);
@@ -161,4 +179,11 @@ public class SMCPSocket extends MulticastSocket {
         }
     }
 
+    public byte[] getHashValueSocket(byte[] data) throws NoSuchProviderException, NoSuchAlgorithmException {
+        byte[] hashValue= null;
+
+        MessageDigest hash = HashUtil.getInstance(socketConfig.getIntHash());
+        hashValue = hash.digest(data.toString().getBytes());
+        return hashValue;
+    }
 }
