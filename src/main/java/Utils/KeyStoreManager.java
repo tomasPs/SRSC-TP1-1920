@@ -3,6 +3,7 @@ package Utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Objects;
@@ -17,19 +18,24 @@ public class KeyStoreManager {
     public KeyStoreManager(String type) {
         try {
             keyStore = KeyStore.getInstance(type);
-            File keyStoreFile = new File(Objects
-                .requireNonNull(getClass().getClassLoader().getResource("security/SMCPKeystore.jecks")).getFile());
-            FileInputStream stream = new FileInputStream(keyStoreFile);
-            keyStore.load(stream, "g11srsc".toCharArray());
+            InputStream keyStoreStream = getClass().getClassLoader().getResourceAsStream("security/SMCPKeystore.jecks");
+            keyStore.load(keyStoreStream, "g11srsc".toCharArray());
         } catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
             e.printStackTrace();
         }
     }
 
-    public Key getKey(
+    public Key getSymmetricKey(
         String alias,
         String password
     ) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        return keyStore.getKey(alias, password.toCharArray());
+        return keyStore.getKey(alias+"-se", password.toCharArray());
+    }
+
+    public Key getMac(
+        String alias,
+        String password
+    ) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+        return keyStore.getKey(alias + "-mac", password.toCharArray());
     }
 }

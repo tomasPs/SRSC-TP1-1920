@@ -77,7 +77,7 @@ public class SMCPMessage {
         buffer.put(vID);
         writeString(buffer, sID);
         buffer.put(type.getTypeCode());
-        buffer.put(sAttributesHash);
+        writeByteArray(buffer, sAttributesHash);
         writeByteArray(buffer, securePayload);
         writeByteArray(buffer, fastSecurePayloadCheck);
 
@@ -85,8 +85,12 @@ public class SMCPMessage {
     }
 
     private int getByteArrayLength() {
-        return 2 + Integer.BYTES + this.sID.getBytes().length
+        return 2 + Integer.BYTES + this.sID.getBytes().length + Integer.BYTES
             + sAttributesHash.length + Integer.BYTES + securePayload.length + Integer.BYTES + fastSecurePayloadCheck.length;
+    }
+
+    public void setSecurePayload(byte[] securePayload) {
+        this.securePayload = securePayload;
     }
 
     @Override
@@ -118,11 +122,9 @@ public class SMCPMessage {
         message.vID = buffer.get();
         message.sID = readString(buffer);
         message.type = MessageType.fromTypeCode(buffer.get());
-        message.sAttributesHash = readByteArray(buffer, 32);
-        int sizeOfPayload = buffer.getInt();
-        message.securePayload = readByteArray(buffer, sizeOfPayload);
-        int sizeOfPayloadCheck = buffer.getInt();
-        message.fastSecurePayloadCheck = readByteArray(buffer, sizeOfPayloadCheck);
+        message.sAttributesHash = readByteArray(buffer);
+        message.securePayload = readByteArray(buffer);
+        message.fastSecurePayloadCheck = readByteArray(buffer);
 
         return message;
     }

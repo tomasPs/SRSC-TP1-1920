@@ -1,42 +1,36 @@
 package SMCP;
 
 public class EndpointConfiguration {
-
-    private String ip;
-    private String sea;
     private String sid;
+    private String sea;
     private int seaks;
     private String mode;
     private String padding;
-    private String hash;
+    private String intHash;
     private String mac;
     private int makks;
+    private String ipPort;
 
     public EndpointConfiguration(
-        String iip,
-        String isid,
-        String isea,
-        int iseaks,
-        String imode,
-        String ipadding,
-        String ihash,
-        String imac,
-        int imakks
+        String sid,
+        String sea,
+        int seaks,
+        String mode,
+        String padding,
+        String intHash,
+        String mac,
+        int makks,
+        String ipPort
     ) {
-
-        ip = iip;
-        sea = isea;
-        sid = isid;
-        seaks = iseaks;
-        mode = imode;
-        padding = ipadding;
-        hash = ihash;
-        mac = imac;
-        makks = imakks;
-    }
-
-    public String getIp() {
-        return ip;
+        this.sea = sea;
+        this.sid = sid;
+        this.seaks = seaks;
+        this.mode = mode;
+        this.padding = padding;
+        this.intHash = intHash;
+        this.mac = mac;
+        this.makks = makks;
+        this.ipPort = ipPort;
     }
 
     public String getSid() {
@@ -59,8 +53,8 @@ public class EndpointConfiguration {
         return padding;
     }
 
-    public String getHash() {
-        return hash;
+    public String getIntHash() {
+        return intHash;
     }
 
     public String getMac() {
@@ -69,5 +63,9 @@ public class EndpointConfiguration {
 
     public int getMakks() {
         return makks;
+    }
+
+    public String getIpPort() {
+        return ipPort;
     }
 }

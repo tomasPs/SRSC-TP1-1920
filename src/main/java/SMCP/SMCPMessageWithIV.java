@@ -5,8 +5,7 @@ import Utils.ParsingUtils;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import static Utils.ParsingUtils.readByteArray;
-import static Utils.ParsingUtils.readString;
+import static Utils.ParsingUtils.*;
 
 public class SMCPMessageWithIV extends SMCPMessage {
     private byte[] IV;
@@ -33,7 +32,7 @@ public class SMCPMessageWithIV extends SMCPMessage {
         ByteBuffer buffer = ByteBuffer.wrap(msgWithIV);
 
         buffer.put(message);
-        ParsingUtils.writeByteArray(buffer, IV);
+        writeByteArray(buffer, IV);
         return buffer.array();
     }
 
@@ -42,7 +41,7 @@ public class SMCPMessageWithIV extends SMCPMessage {
         byte vId = buffer.get();
         String sID = readString(buffer);
         MessageType type = MessageType.fromTypeCode(buffer.get());
-        byte[] sAttributesHash = readByteArray(buffer, 32);
+        byte[] sAttributesHash = readByteArray(buffer);
         byte[] securePayload = readByteArray(buffer);
         byte[] fastSecurePayloadCheck = readByteArray(buffer);
         byte[] IV = readByteArray(buffer);

@@ -7,7 +7,7 @@ import java.security.NoSuchProviderException;
 
 public class SymmetricEncryptionUtil {
 
-    public Cipher getInstance(String parameters) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
+    public static Cipher getInstance(String parameters) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
         return Cipher.getInstance(parameters, "BC");
     }
 }

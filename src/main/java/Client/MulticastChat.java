@@ -27,7 +27,7 @@ public class MulticastChat extends Thread {
   // Multicast socket used to send and receive multicast protocol PDUs
   // Socket Multicast usado para enviar e receber mensagens
   // no ambito das operacoes que tem lugar no Chat
-  protected SMCPSocket msocket;
+  protected MulticastSocket msocket;
 
   // Username / User-Nick-Name do Chat
   protected String username;
