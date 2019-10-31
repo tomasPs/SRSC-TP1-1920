@@ -93,6 +93,14 @@ public class SMCPMessage {
         this.securePayload = securePayload;
     }
 
+    public void setFastSecurePayloadCheck(byte[] fastSecurePayloadCheck) {
+        this.fastSecurePayloadCheck = fastSecurePayloadCheck;
+    }
+
+    public Payload getPayload() {
+        return Payload.parse(this.securePayload);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -104,15 +112,6 @@ public class SMCPMessage {
             Arrays.equals(sAttributesHash, message.sAttributesHash) &&
             Arrays.equals(securePayload, message.securePayload) &&
             Arrays.equals(fastSecurePayloadCheck, message.fastSecurePayloadCheck);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hash(vID, sID, type);
-        result = 31 * result + Arrays.hashCode(sAttributesHash);
-        result = 31 * result + Arrays.hashCode(securePayload);
-        result = 31 * result + Arrays.hashCode(fastSecurePayloadCheck);
-        return result;
     }
 
     public static SMCPMessage parse(byte[] input) {

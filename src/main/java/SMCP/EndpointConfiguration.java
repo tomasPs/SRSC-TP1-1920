@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class EndpointConfiguration {
     private String sid;
@@ -20,6 +21,7 @@ public class EndpointConfiguration {
     private String ipPort;
 
     private byte[] hashValue;
+    private Logger logger = Logger.getLogger(EndpointConfiguration.class.getName());
 
     public EndpointConfiguration(
         String sid,
@@ -42,7 +44,7 @@ public class EndpointConfiguration {
         this.makks = makks;
         this.ipPort = ipPort;
 
-        hashValue=null;
+        hashValue = null;
     }
 
     public String getSid() {
@@ -98,7 +100,7 @@ public class EndpointConfiguration {
     }
 
     public byte[] getHashValue() throws NoSuchProviderException, NoSuchAlgorithmException {
-        if (hashValue!=null)
+        if (hashValue != null)
             return hashValue;
 
         List<String> attributeList = new ArrayList<>(10);
@@ -114,8 +116,7 @@ public class EndpointConfiguration {
 
         MessageDigest hash = HashUtil.getInstance(this.intHash);
         hashValue = hash.digest(attributeList.toString().getBytes());
+        logger.info("Generated hash value for config");
         return hashValue;
-
     }
-
 }

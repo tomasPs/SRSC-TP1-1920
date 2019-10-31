@@ -7,7 +7,7 @@ import java.util.Objects;
 import static Utils.ParsingUtils.*;
 import static Utils.ParsingUtils.writeByteArray;
 
-public class Payload {
+public class Payload implements Comparable<Payload> {
     private String fromPeerID;
     private int seqNumber;
     private int randomNonce;
@@ -73,11 +73,8 @@ public class Payload {
     }
 
     @Override
-    public int hashCode() {
-        int result = Objects.hash(fromPeerID, seqNumber, randomNonce);
-        result = 31 * result + Arrays.hashCode(message);
-        result = 31 * result + Arrays.hashCode(integrityControl);
-        return result;
+    public int compareTo(Payload msg) {
+        return Integer.compare(getSeqNumber(), msg.getSeqNumber());
     }
 
     public static Payload parse(byte[] input) {
@@ -92,4 +89,5 @@ public class Payload {
 
         return payload;
     }
+
 }

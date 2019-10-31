@@ -1,6 +1,7 @@
 package SMCP;
 
 import Utils.KeyStoreManager;
+import Utils.MacUtil;
 import Utils.SymmetricEncryptionUtil;
 
 import javax.crypto.*;
@@ -9,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import static Utils.GeneratorUtils.generateIV;
 
@@ -17,11 +19,15 @@ public class Protocol {
     private String params;
     private Map<String, Boolean> cachedIVCheck;
 
+    private Logger logger = Logger.getLogger(Protocol.class.getName());
+    KeyStoreManager manager;
+
     public Protocol(EndpointConfiguration configuration) {
         this.configuration = configuration;
         this.params = configuration.getSea() + "/" + configuration.getMode() + "/" + configuration.getPadding();
         this.cachedIVCheck = new HashMap<>();
         initializeCachedIVChecks();
+        manager = new KeyStoreManager();
     }
 
     private void initializeCachedIVChecks() {
@@ -76,6 +82,8 @@ public class Protocol {
         if (cachedIVCheck.containsKey(configuration.getMode()))
             return cachedIVCheck.get(configuration.getMode());
 
+        logger.warning("needsIv(): Mode '" + configuration.getMode() + "' not found in cache");
+
         String p = configuration.getSea() + "/" + configuration.getMode() + "/" + configuration.getPadding();
         Cipher cipher = SymmetricEncryptionUtil.getInstance(p);
 
@@ -96,7 +104,6 @@ public class Protocol {
             byte[] clearText = new byte[cipher.getOutputSize(cipherText.length)];
             ctLen = cipher.update(cipherText, 0, cipherText.length, clearText, 0);
             cipher.doFinal(clearText, ctLen);
-
         } catch (InvalidKeyException e) {
             if (e.getMessage().equals("no IV set when one expected")) {
                 this.cachedIVCheck.put(configuration.getMode(), true);
@@ -132,5 +139,30 @@ public class Protocol {
         message.setSecurePayload(clearPayload.toByteArray());
 
         return message;
+    }
+
+    public byte[] getMac(SMCPMessage msg) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvalidKeyException {
+        byte[] bytes = msg.toByteArray();
+        Key k = manager.getMacKey(configuration.getIpPort(), configuration.getIpPort());
+        Mac mac = MacUtil.getInstance(configuration.getMac());
+
+        mac.init(k);
+        mac.update(bytes);
+
+        return mac.doFinal();
+    }
+
+    public boolean verifyMac(SMCPMessage msg) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, InvalidKeyException {
+        Key k = manager.getMacKey(configuration.getIpPort(), configuration.getIpPort());
+        Mac mac = MacUtil.getInstance(configuration.getMac());
+
+        byte[] receivedMac = msg.getFastSecurePayloadCheck();
+
+        msg.setFastSecurePayloadCheck(new byte[0]);
+
+        byte[] newMac = getMac(msg);
+        msg.setFastSecurePayloadCheck(receivedMac);
+
+        return MessageDigest.isEqual(receivedMac,newMac);
     }
 }

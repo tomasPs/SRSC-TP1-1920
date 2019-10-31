@@ -1,13 +1,13 @@
 package SMCP;
 
 import Utils.EndpointReader;
+import Utils.HashUtil;
 import Utils.ParsingUtils;
 
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.security.*;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -20,7 +20,8 @@ public class SMCPSocket extends MulticastSocket {
 
     private Logger logger = Logger.getLogger(SMCPSocket.class.getName());
     private EndpointConfiguration socketConfig;
-    private Set<Integer> nounces;
+    private Set<Integer> nonces;
+    private MessageSequenceHandler sequenceHandler;
 
     public SMCPSocket() throws IOException {
         super();
@@ -37,8 +38,13 @@ public class SMCPSocket extends MulticastSocket {
     @Override
     public void joinGroup(InetAddress mcastaddr) throws IOException {
         super.joinGroup(mcastaddr);
-        configure(mcastaddr);
-        nounces = new HashSet<>();
+        initialize(mcastaddr);
+    }
+
+    private void initialize(InetAddress mcastaddr) {
+        setSocketConfig(mcastaddr);
+        nonces = new HashSet<>();
+        sequenceHandler = new MessageSequenceHandler();
     }
 
     @Override
@@ -61,8 +67,16 @@ public class SMCPSocket extends MulticastSocket {
         String username = inputStream.readUTF();
         inputStream.close();
 
-        //TODO securiy stuff
-        byte[] hash = new byte[32];
+        //hash
+        byte[] hash = new byte[0];
+        try {
+            MessageDigest msgDig = HashUtil.getInstance(socketConfig.getIntHash());
+            hash = msgDig.digest(p.getData());
+        } catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        //Nonce
         int nonce = 0;
         try {
             nonce = generateSecureInt();
@@ -70,8 +84,12 @@ public class SMCPSocket extends MulticastSocket {
             nonce = new Random().nextInt();
         }
         logger.info("Generated (" + nonce + ") nonce");
-        Payload payload = new Payload(username, 0, nonce, p.getData(), hash);
+        int seq = sequenceHandler.useSequence();
 
+        Payload payload = new Payload(username, seq, nonce, p.getData(), hash);
+        logger.info("Sequence number of: " + seq);
+
+        //sAttrbitues
         byte[] attributesHash = new byte[0];
         try {
             attributesHash = this.socketConfig.getHashValue();
@@ -82,16 +100,23 @@ public class SMCPSocket extends MulticastSocket {
         SMCPMessage msg = new SMCPMessage(
             (byte) 0,
             this.socketConfig.getSid(),
-            SMCPMessage.MessageType.SMCPMessage,
             attributesHash,
             payload.toByteArray(),
-            hash
+            new byte[0]
         );
 
         Protocol protocol = new Protocol(socketConfig);
         try {
             msg = protocol.encryptPayload(msg);
 
+            //MAC
+            try {
+                msg.setFastSecurePayloadCheck(protocol.getMac(msg));
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                e.printStackTrace();
+            }
+
+            //Finalize packet and send
             byte[] data = msg.toByteArray();
             DatagramPacket packet = new DatagramPacket(data, data.length, p.getAddress(),
                 this.getLocalPort()
@@ -122,17 +147,30 @@ public class SMCPSocket extends MulticastSocket {
                 break;
         }
 
+        //sAttributes
         try {
             byte[] attributesHash = this.socketConfig.getHashValue();
             if (!MessageDigest.isEqual(attributesHash, msg.getsAttributesHash())) {
                 logger.warning("Attributes hash is not equal");
                 return;
-            }
+            } else
+                logger.info("Attributes Hash: PASSES");
         } catch (NoSuchProviderException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
 
         Protocol protocol = new Protocol(socketConfig);
+
+        //Check MAC
+        try {
+            if (!protocol.verifyMac(msg)) {
+                logger.warning("Mac is not equal to the one received");
+                return;
+            } else
+                logger.info("Mac: PASSES");
+        } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException | NoSuchProviderException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
 
         try {
             msg = protocol.decryptPayload(msg);
@@ -144,6 +182,21 @@ public class SMCPSocket extends MulticastSocket {
                 return;
             }
 
+            //Check sequence
+            boolean validSeq = sequenceHandler.validateNewMsg(payload.getFromPeerID(), payload.getSeqNumber());
+            if (!validSeq) {
+                return;
+            }
+
+            //Check integrity
+            MessageDigest digest = HashUtil.getInstance(socketConfig.getIntHash());
+            byte[] hashValue = digest.digest(payload.getMessage());
+            if (!MessageDigest.isEqual(hashValue,payload.getIntegrityControl()))
+            {
+                logger.warning("Integrity check on message FAILED");
+                return;
+            }
+
             p.setData(payload.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
@@ -151,15 +204,15 @@ public class SMCPSocket extends MulticastSocket {
     }
 
     private boolean seenNonceBefore(int nonce) {
-        if (this.nounces.contains(nonce)) {
+        if (this.nonces.contains(nonce)) {
             logger.warning("Same nonce found - " + nonce);
             return true;
         }
-        nounces.add(nonce);
+        nonces.add(nonce);
         return false;
     }
 
-    private void configure(InetAddress mcastaddr) {
+    private void setSocketConfig(InetAddress mcastaddr) {
         try {
             InputStream in = getClass().getResourceAsStream("/security/SMCP.conf");
 

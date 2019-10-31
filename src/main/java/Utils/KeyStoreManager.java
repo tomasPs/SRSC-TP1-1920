@@ -32,7 +32,7 @@ public class KeyStoreManager {
         return keyStore.getKey(alias+"-se", password.toCharArray());
     }
 
-    public Key getMac(
+    public Key getMacKey(
         String alias,
         String password
     ) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
