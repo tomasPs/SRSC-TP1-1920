@@ -1,4 +1,3 @@
-
 package Utils;
 
 import java.io.File;
@@ -61,7 +60,6 @@ public class EndpointReader {
 		
 		makks= Integer.parseInt(jsonobject.getJSONObject(ip).getString("makks"));
         
-
         config = new EndpointConfiguration(ip, sid, sea, seaks, mode, padding, hash, mac, makks);
         return config;
     }
