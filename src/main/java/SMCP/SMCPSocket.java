@@ -2,16 +2,12 @@ package SMCP;
 
 import Utils.EndpointReader;
 import Utils.ParsingUtils;
-import sun.rmi.runtime.Log;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.ShortBufferException;
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.security.*;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -73,14 +69,21 @@ public class SMCPSocket extends MulticastSocket {
         } catch (NoSuchAlgorithmException e) {
             nonce = new Random().nextInt();
         }
-        logger.info("Generated ("+nonce+") nonce");
+        logger.info("Generated (" + nonce + ") nonce");
         Payload payload = new Payload(username, 0, nonce, p.getData(), hash);
+
+        byte[] attributesHash = new byte[0];
+        try {
+            attributesHash = this.socketConfig.getHashValue();
+        } catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
         SMCPMessage msg = new SMCPMessage(
             (byte) 0,
             this.socketConfig.getSid(),
             SMCPMessage.MessageType.SMCPMessage,
-            hash,
+            attributesHash,
             payload.toByteArray(),
             hash
         );
@@ -117,6 +120,16 @@ public class SMCPSocket extends MulticastSocket {
             default:
                 msg = SMCPMessage.parse(p.getData());
                 break;
+        }
+
+        try {
+            byte[] attributesHash = this.socketConfig.getHashValue();
+            if (!MessageDigest.isEqual(attributesHash, msg.getsAttributesHash())) {
+                logger.warning("Attributes hash is not equal");
+                return;
+            }
+        } catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
 
         Protocol protocol = new Protocol(socketConfig);
